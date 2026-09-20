@@ -1,21 +1,59 @@
 import streamlit as st
 
 from adapters.tvmaze_client import TVMazeClient
-from core.use_cases import SearchSeriesUseCase
+from core.use_cases import GetSeriesDetailsUseCase, SearchSeriesUseCase
 
 
 st.set_page_config(page_title="TV Series Explorer", layout="wide")
 
 
 @st.cache_resource
-def get_search_series_use_case():
+def get_use_cases():
     """Compose the concrete TVMaze adapter at the application boundary."""
-    return SearchSeriesUseCase(TVMazeClient())
+    tvmaze_client = TVMazeClient()
+    return SearchSeriesUseCase(tvmaze_client), GetSeriesDetailsUseCase(tvmaze_client)
 
 
-search_series_uc = get_search_series_use_case()
+search_series_uc, get_series_details_uc = get_use_cases()
+
+
+def render_series_details(series_id):
+    with st.spinner("Carregando detalhes..."):
+        series = get_series_details_uc.execute(series_id)
+
+    if series is None:
+        st.error("Não foi possível carregar os detalhes da série.")
+        return
+
+    if st.button("Voltar para resultados"):
+        st.session_state.pop("selected_series_id")
+        st.rerun()
+
+    st.header(series.name)
+    if series.poster_url:
+        st.image(series.poster_url, width=240)
+    st.write(series.summary or "Resumo não disponível.")
+    if series.genres:
+        st.write(f"Gêneros: {', '.join(series.genres)}")
+
+    if series.episodes:
+        st.subheader("Episódios")
+        episodes_by_season = {}
+        for episode in series.episodes:
+            episodes_by_season.setdefault(episode.season, []).append(episode)
+
+        for season, episodes in sorted(episodes_by_season.items()):
+            with st.expander(f"Temporada {season}"):
+                for episode in sorted(episodes, key=lambda item: item.number):
+                    st.write(f"{episode.number}. {episode.name}")
+
 
 st.title("TV Series Explorer")
+
+if "selected_series_id" in st.session_state:
+    render_series_details(st.session_state["selected_series_id"])
+    st.stop()
+
 query = st.text_input("Busque por uma série", placeholder="Ex.: Breaking Bad")
 
 if query:
@@ -26,7 +64,7 @@ if query:
         st.info("Nenhuma série encontrada.")
     else:
         st.subheader("Resultados")
-        for series in series_results:
+        for index, series in enumerate(series_results):
             poster_column, details_column = st.columns([1, 4])
             with poster_column:
                 if series.poster_url:
@@ -36,3 +74,6 @@ if query:
                 st.markdown(f"### {series.name}{year}")
                 if series.genres:
                     st.write(f"Gêneros: {', '.join(series.genres)}")
+                if st.button("Ver detalhes", key=f"series-{series.id}-{index}"):
+                    st.session_state["selected_series_id"] = series.id
+                    st.rerun()

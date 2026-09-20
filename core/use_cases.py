@@ -20,6 +20,16 @@ class SearchSeriesUseCase:
         return self.series_provider.search_series(normalized_query)
 
 
+class GetSeriesDetailsUseCase:
+    """Loads the selected series details through the injected provider."""
+
+    def __init__(self, series_provider: TVMazeClient):
+        self.series_provider = series_provider
+
+    def execute(self, series_id: int) -> Series | None:
+        return self.series_provider.get_series_details(series_id)
+
+
 class GenerateInsightUseCase:
     def __init__(self, ai_provider: IAProvider):
         self.ai_provider = ai_provider

@@ -71,9 +71,9 @@ Os testes cobrem a lógica de negócio isolada (`Core`). Para executá-los, é n
      venv\Scripts\activate
      ```
 
-3. **Instale as dependências da aplicação junto com a biblioteca de testes:**
+3. **Instale as dependências da aplicação:**
    ```bash
-   pip install -r requirements.txt pytest
+   pip install -r requirements.txt
    ```
 
 4. **Execute a suíte de testes:**
