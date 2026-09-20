@@ -32,7 +32,7 @@ def render_series_details(series_id):
     st.header(series.name)
     if series.poster_url:
         st.image(series.poster_url, width=240)
-    st.write(series.summary or "Resumo não disponível.")
+    st.markdown(series.summary or "Resumo não disponível.", unsafe_allow_html=True)
     if series.genres:
         st.write(f"Gêneros: {', '.join(series.genres)}")
 
@@ -46,6 +46,8 @@ def render_series_details(series_id):
             with st.expander(f"Temporada {season}"):
                 for episode in sorted(episodes, key=lambda item: item.number):
                     st.write(f"{episode.number}. {episode.name}")
+                    if episode.summary:
+                        st.markdown(episode.summary, unsafe_allow_html=True)
 
 
 st.title("TV Series Explorer")
@@ -54,26 +56,35 @@ if "selected_series_id" in st.session_state:
     render_series_details(st.session_state["selected_series_id"])
     st.stop()
 
-query = st.text_input("Busque por uma série", placeholder="Ex.: Breaking Bad")
+query = st.text_input(
+    "Busque por uma série",
+    placeholder="Ex.: Breaking Bad",
+    key="search_query_input",
+)
 
-if query:
-    with st.spinner("Buscando séries..."):
-        series_results = search_series_uc.execute(query)
+normalized_query = query.strip()
+if normalized_query:
+    if st.session_state.get("search_query") != normalized_query:
+        with st.spinner("Buscando séries..."):
+            st.session_state["search_results"] = search_series_uc.execute(query)
+        st.session_state["search_query"] = normalized_query
 
-    if not series_results:
-        st.info("Nenhuma série encontrada.")
-    else:
-        st.subheader("Resultados")
-        for index, series in enumerate(series_results):
-            poster_column, details_column = st.columns([1, 4])
-            with poster_column:
-                if series.poster_url:
-                    st.image(series.poster_url, width=120)
-            with details_column:
-                year = f" ({series.premiered_year})" if series.premiered_year else ""
-                st.markdown(f"### {series.name}{year}")
-                if series.genres:
-                    st.write(f"Gêneros: {', '.join(series.genres)}")
-                if st.button("Ver detalhes", key=f"series-{series.id}-{index}"):
-                    st.session_state["selected_series_id"] = series.id
-                    st.rerun()
+series_results = st.session_state.get("search_results", [])
+
+if series_results:
+    st.subheader("Resultados")
+    for index, series in enumerate(series_results):
+        poster_column, details_column = st.columns([1, 4])
+        with poster_column:
+            if series.poster_url:
+                st.image(series.poster_url, width=120)
+        with details_column:
+            year = f" ({series.premiered_year})" if series.premiered_year else ""
+            st.markdown(f"### {series.name}{year}")
+            if series.genres:
+                st.write(f"Gêneros: {', '.join(series.genres)}")
+            if st.button("Ver detalhes", key=f"series-{series.id}-{index}"):
+                st.session_state["selected_series_id"] = series.id
+                st.rerun()
+elif normalized_query:
+    st.info("Nenhuma série encontrada.")
