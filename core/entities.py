@@ -10,7 +10,7 @@ class Episode:
     number: int
     summary: Optional[str] = None
     watched: bool = False
-    comments: List[str] = field(default_factory=list)
+    comment: Optional[str] = None
 
 
 @dataclass
@@ -22,3 +22,5 @@ class Series:
     summary: Optional[str] = None
     premiered_year: Optional[int] = None
     episodes: List[Episode] = field(default_factory=list)
+    comment: Optional[str] = None
+    status: str = "not_started"
