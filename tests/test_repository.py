@@ -1,20 +1,21 @@
+import pytest
+
 from adapters.repository import PostgresRepository
-from core.entities import Episode, Series
 
 
-def test_repository_persists_status_and_comments(monkeypatch, tmp_path):
+def test_repository_requires_database_url(monkeypatch):
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+
+    with pytest.raises(RuntimeError, match="DATABASE_URL environment variable is required"):
+        PostgresRepository()
+def repository(monkeypatch, tmp_path):
     database_url = f"sqlite:///{tmp_path / 'test.db'}"
     monkeypatch.setenv("DATABASE_URL", database_url)
-    repository = PostgresRepository()
-    series = Series(
-        id=100,
-        name="Test Series",
-        genres=["Drama"],
-        episodes=[
-            Episode(id=200, name="Pilot", season=1, number=1),
-            Episode(id=201, name="Finale", season=1, number=2),
-        ],
-    )
+    return PostgresRepository()
+
+
+def test_repository_persists_status_and_comments(repository, sample_series):
+    series = sample_series
 
     repository.sync_series(series)
     repository.save_series_comment(series.id, "Series comment")
@@ -35,12 +36,8 @@ def test_repository_persists_status_and_comments(monkeypatch, tmp_path):
     assert completed.status == "watched"
 
 
-def test_repository_persists_movie_status(monkeypatch, tmp_path):
-    database_url = f"sqlite:///{tmp_path / 'movie.db'}"
-    monkeypatch.setenv("DATABASE_URL", database_url)
-    repository = PostgresRepository()
-    movie = Series(id=300, name="Test Movie", genres=[])
-
+def test_repository_persists_movie_status(repository, sample_movie):
+    movie = sample_movie
     repository.sync_series(movie)
     repository.mark_series_as_watched(movie.id, True)
 

@@ -10,9 +10,9 @@ from core.interfaces import PersistenceRepository
 
 class PostgresRepository(PersistenceRepository):
     def __init__(self):
-        db_url = os.getenv(
-            "DATABASE_URL", "postgresql://app_user:app_password@db:5432/tvseries_db"
-        )
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            raise RuntimeError("DATABASE_URL environment variable is required")
         self.engine = create_engine(db_url)
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
