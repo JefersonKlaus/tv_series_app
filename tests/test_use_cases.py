@@ -1,5 +1,11 @@
+import asyncio
+
 from core.entities import Series
-from core.use_cases import GenerateInsightUseCase, SearchSeriesUseCase
+from core.use_cases import (
+    GenerateInsightUseCase,
+    GetSeriesDetailsUseCase,
+    SearchSeriesUseCase,
+)
 
 
 class SuccessfulAIProvider:
@@ -16,9 +22,12 @@ class SeriesProvider:
     def __init__(self):
         self.queries = []
 
-    def search_series(self, query):
+    async def search_series(self, query):
         self.queries.append(query)
         return [Series(id=1, name="Breaking Bad", genres=["Drama"])]
+
+    async def get_series_details(self, series_id):
+        return Series(id=series_id, name="Breaking Bad", genres=["Drama"])
 
 
 def test_returns_message_when_summary_is_missing():
@@ -49,7 +58,7 @@ def test_search_series_use_case_delegates_to_injected_provider():
     provider = SeriesProvider()
     use_case = SearchSeriesUseCase(provider)
 
-    result = use_case.execute("  Breaking Bad  ")
+    result = asyncio.run(use_case.execute("  Breaking Bad  "))
 
     assert result[0].name == "Breaking Bad"
     assert provider.queries == ["Breaking Bad"]
@@ -59,5 +68,14 @@ def test_search_series_use_case_ignores_empty_query():
     provider = SeriesProvider()
     use_case = SearchSeriesUseCase(provider)
 
-    assert use_case.execute("   ") == []
+    assert asyncio.run(use_case.execute("   ")) == []
     assert provider.queries == []
+
+
+def test_get_series_details_use_case_awaits_injected_provider():
+    use_case = GetSeriesDetailsUseCase(SeriesProvider())
+
+    result = asyncio.run(use_case.execute(1))
+
+    assert result is not None
+    assert result.name == "Breaking Bad"

@@ -1,7 +1,7 @@
 # TV Series Explorer - Architecture Technical Challenge
 
 Este projeto é um módulo central de uma plataforma de streaming focado na busca e interação com séries de TV. Ele foi desenhado com foco estrito em **Arquitetura Limpa (Clean Architecture)**, **Princípios SOLID** e alta manutenibilidade, servindo como referência técnica para times de desenvolvimento.
-
+![Arquitetura](./assets/arch.png)
  
 
 ## 🏛️ Decisões Arquiteturais

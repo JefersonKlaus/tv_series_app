@@ -6,8 +6,12 @@ from adapters.repository import PostgresRepository
 def test_repository_requires_database_url(monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
 
-    with pytest.raises(RuntimeError, match="DATABASE_URL environment variable is required"):
+    with pytest.raises(
+        RuntimeError, match="DATABASE_URL environment variable is required"
+    ):
         PostgresRepository()
+
+
 def repository(monkeypatch, tmp_path):
     database_url = f"sqlite:///{tmp_path / 'test.db'}"
     monkeypatch.setenv("DATABASE_URL", database_url)
