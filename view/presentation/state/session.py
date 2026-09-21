@@ -11,6 +11,7 @@ class SessionState:
     SEARCH_QUERY_INPUT = "search_query_input"
     EDITING_SERIES_ID = "editing_series_id"
     EDITING_EPISODE_ID = "editing_episode_id"
+    INSIGHTS = "insights"
 
     # SELECT SERIE
     def get_selected_series(self):
@@ -129,3 +130,10 @@ class SessionState:
             self.EDITING_EPISODE_ID,
             None,
         )
+
+    def set_insight(self, content_id, insight):
+        insights = st.session_state.setdefault(self.INSIGHTS, {})
+        insights[content_id] = insight
+
+    def get_insight(self, content_id):
+        return st.session_state.get(self.INSIGHTS, {}).get(content_id)

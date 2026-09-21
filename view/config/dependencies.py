@@ -1,6 +1,7 @@
 import streamlit as st
 
 from adapters.repository import PostgresRepository
+from adapters.ai_provider import HuggingFaceProvider
 from adapters.tvmaze_client import TVMazeClient
 from core.use_cases import (
     GetSeriesDetailsUseCase,
@@ -9,6 +10,7 @@ from core.use_cases import (
     SaveEpisodeCommentUseCase,
     SaveSeriesCommentUseCase,
     SearchSeriesUseCase,
+    GenerateInsightUseCase,
 )
 
 
@@ -21,6 +23,7 @@ class Dependencies:
         mark_series_watched,
         save_series_comment,
         save_episode_comment,
+        generate_insight,
     ):
         self.search_series = search_series
         self.get_series_details = get_series_details
@@ -28,12 +31,14 @@ class Dependencies:
         self.mark_series_watched = mark_series_watched
         self.save_series_comment = save_series_comment
         self.save_episode_comment = save_episode_comment
+        self.generate_insight = generate_insight
 
 
 @st.cache_resource
 def get_dependencies() -> Dependencies:
     tvmaze_client = TVMazeClient()
     repository = PostgresRepository()
+    ai_provider = HuggingFaceProvider()
 
     return Dependencies(
         search_series=SearchSeriesUseCase(
@@ -56,4 +61,5 @@ def get_dependencies() -> Dependencies:
         save_episode_comment=SaveEpisodeCommentUseCase(
             repository,
         ),
+        generate_insight=GenerateInsightUseCase(ai_provider),
     )
