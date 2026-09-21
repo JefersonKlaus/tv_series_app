@@ -36,10 +36,12 @@ Para garantir a separação de responsabilidades e a independência de framework
    * **Linux / Mac:**
      ```bash
      export HF_API_KEY="sua_chave_hugging_face_aqui"
+     export DATABASE_URL="postgresql://app_user:app_password@db:5432/tvseries_db"
      ```
    * **Windows (PowerShell):**
      ```powershell
      $env:HF_API_KEY="sua_chave_hugging_face_aqui"
+     $env:DATABASE_URL="postgresql://app_user:app_password@db:5432/tvseries_db"
      ```
 
 3. **Execute a aplicação:**

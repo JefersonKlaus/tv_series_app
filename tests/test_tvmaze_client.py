@@ -1,5 +1,7 @@
 from adapters.tvmaze_client import TVMazeClient
 
+import requests
+
 
 class FakeResponse:
     def __init__(self, payload):
@@ -20,6 +22,11 @@ class FakeHttpClient:
     def get(self, url, params=None, timeout=None):
         self.requests.append((url, params, timeout))
         return FakeResponse(self.responses.pop(0))
+
+
+class FailingHttpClient:
+    def get(self, url, params=None, timeout=None):
+        raise requests.RequestException("TVMaze indisponível")
 
 
 def test_search_series_maps_title_year_and_poster():
@@ -71,3 +78,14 @@ def test_get_series_details_maps_episodes():
         "Cat's in the Bag...",
     ]
     assert http_client.requests[1][0].endswith("/shows/1/episodes")
+
+
+def test_search_series_returns_empty_for_blank_query():
+    http_client = FakeHttpClient([])
+
+    assert TVMazeClient(http_client).search_series("   ") == []
+    assert http_client.requests == []
+
+
+def test_search_series_returns_empty_when_request_fails():
+    assert TVMazeClient(FailingHttpClient()).search_series("Breaking Bad") == []

@@ -22,7 +22,7 @@ services:
     ports:
       - "7777:7777"
     environment:
-      - DATABASE_URL=postgresql://app_user:app_password@db:5432/tvseries_db
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set}
       - HF_API_KEY=${HF_API_KEY:-}
     depends_on:
       db:
