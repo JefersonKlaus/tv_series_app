@@ -1,7 +1,7 @@
 import streamlit as st
 
-from infrastructure.async_runner import run_async
-from presentation.components.series_basic_info import (
+from view.infrastructure.async_runner import run_async
+from view.presentation.components.series_basic_info import (
     render_series_basic_info,
 )
 
@@ -104,6 +104,15 @@ def _render_full_details(
         series,
         dependencies,
         session,
+    )
+
+    _render_insight_button(
+        content_id=f"series-{series.id}",
+        summary=series.summary,
+        genres=series.genres,
+        comments=[series.comment] if series.comment else [],
+        dependencies=dependencies,
+        session=session,
     )
 
     _render_episodes(
@@ -273,6 +282,15 @@ def _render_episode(
     if episode.comment:
         st.write(f"Comentário: {episode.comment}")
 
+    _render_insight_button(
+        content_id=f"episode-{episode.id}",
+        summary=episode.summary,
+        genres=series.genres,
+        comments=[episode.comment] if episode.comment else [],
+        dependencies=dependencies,
+        session=session,
+    )
+
     if st.button(
         (f"Editar comentário - T{episode.season}E{episode.number}"),
         key=f"edit-episode-{episode.id}",
@@ -333,3 +351,27 @@ def _update_series_status(series):
 
     else:
         series.status = "not_started"
+
+
+def _render_insight_button(
+    content_id,
+    summary,
+    genres,
+    comments,
+    dependencies,
+    session,
+):
+    if not summary:
+        return
+
+    insight_key = f"insight-{content_id}"
+    if st.button("Gerar insight com IA", key=f"generate-{content_id}"):
+        with st.spinner("Gerando insight..."):
+            insight = run_async(
+                dependencies.generate_insight.execute(summary, genres, comments)
+            )
+        session.set_insight(insight_key, insight)
+
+    insight = session.get_insight(insight_key)
+    if insight:
+        st.info(insight)

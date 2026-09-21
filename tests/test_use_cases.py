@@ -9,12 +9,12 @@ from core.use_cases import (
 
 
 class SuccessfulAIProvider:
-    def generate_insight(self, summary, genres, comments):
+    async def generate_insight(self, summary, genres, comments):
         return "Insight gerado"
 
 
 class FailingAIProvider:
-    def generate_insight(self, summary, genres, comments):
+    async def generate_insight(self, summary, genres, comments):
         raise RuntimeError("servico indisponivel")
 
 
@@ -33,7 +33,7 @@ class SeriesProvider:
 def test_returns_message_when_summary_is_missing():
     use_case = GenerateInsightUseCase(SuccessfulAIProvider())
 
-    result = use_case.execute("", ["Drama"], [])
+    result = asyncio.run(use_case.execute("", ["Drama"], []))
 
     assert result == "Resumo não disponível para gerar insights."
 
@@ -41,7 +41,7 @@ def test_returns_message_when_summary_is_missing():
 def test_returns_provider_insight():
     use_case = GenerateInsightUseCase(SuccessfulAIProvider())
 
-    result = use_case.execute("Resumo", ["Drama"], ["Ótimo episódio"])
+    result = asyncio.run(use_case.execute("Resumo", ["Drama"], ["Ótimo episódio"]))
 
     assert result == "Insight gerado"
 
@@ -49,7 +49,7 @@ def test_returns_provider_insight():
 def test_returns_fallback_when_provider_fails():
     use_case = GenerateInsightUseCase(FailingAIProvider())
 
-    result = use_case.execute("Resumo", ["Drama"], [])
+    result = asyncio.run(use_case.execute("Resumo", ["Drama"], []))
 
     assert result.startswith("Insight indisponível no momento.")
 

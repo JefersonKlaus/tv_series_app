@@ -96,12 +96,16 @@ class GenerateInsightUseCase:
     def __init__(self, ai_provider: IAProvider):
         self.ai_provider = ai_provider
 
-    def execute(self, summary: str, genres: list[str], comments: list[str]) -> str:
+    async def execute(
+        self, summary: str, genres: list[str], comments: list[str] | None = None
+    ) -> str:
         if not summary:
             return "Resumo não disponível para gerar insights."
 
         try:
-            return self.ai_provider.generate_insight(summary, genres, comments)
+            return await self.ai_provider.generate_insight(
+                summary, genres, comments or []
+            )
         except Exception as e:
             logger.error(f"Erro na API de IA: {e}")
-            return "Insight indisponível no momento. Nossa IA está descansando, mas este episódio promete focar em temas centrais da série!"
+            return "Insight indisponível no momento. Tente novamente mais tarde."

@@ -1,7 +1,7 @@
 import streamlit as st
 
-from infrastructure.async_runner import run_async
-from presentation.components.series_card import (
+from view.infrastructure.async_runner import run_async
+from view.presentation.components.series_card import (
     render_series_card,
 )
 

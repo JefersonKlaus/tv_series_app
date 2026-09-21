@@ -6,7 +6,7 @@ from core.entities import Series
 
 class IAProvider(ABC):
     @abstractmethod
-    def generate_insight(
+    async def generate_insight(
         self, summary: str, genres: List[str], comments: List[str]
     ) -> str:
         pass

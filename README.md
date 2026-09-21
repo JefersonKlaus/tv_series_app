@@ -16,6 +16,12 @@ Para garantir a separação de responsabilidades e a independência de framework
 
 ## 📁 Estrutura de Diretórios
 
+* `/github/workflows`: Pipelines de CI/CD.
+* `/assets`: Recursos estáticos e imagens utilizadas na documentação.
+* `/view/config`: Montagem dos objetos necessários para os casos de uso (Streamlit).
+* `/view/infrastructure`: Executar código assíncrono (Streamlit).
+* `/view/presentation`: Componentes de interface e views da aplicação (Streamlit).
+* `/tests`: Suíte de testes unitários.
 * `/core`: Entidades de domínio, Interfaces e Casos de Uso.
 * `/adapters`: Implementações concretas (TVMaze HTTP Client, Hugging Face API, Postgres Repository).
 * `app.py`: Ponto de entrada da aplicação.
@@ -35,12 +41,12 @@ Para garantir a separação de responsabilidades e a independência de framework
 
    * **Linux / Mac:**
      ```bash
-     export HF_API_KEY="sua_chave_hugging_face_aqui"
+     export HF_TOKEN="sua_chave_hugging_face_aqui"
      export DATABASE_URL="postgresql://app_user:app_password@db:5432/tvseries_db"
      ```
    * **Windows (PowerShell):**
      ```powershell
-     $env:HF_API_KEY="sua_chave_hugging_face_aqui"
+     $env:HF_TOKEN="sua_chave_hugging_face_aqui"
      $env:DATABASE_URL="postgresql://app_user:app_password@db:5432/tvseries_db"
      ```
 

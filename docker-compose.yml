@@ -23,7 +23,7 @@ services:
       - "7777:7777"
     environment:
       - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set}
-      - HF_API_KEY=${HF_API_KEY:-}
+      - HF_TOKEN=${HF_TOKEN:-}
     depends_on:
       db:
         condition: service_healthy
