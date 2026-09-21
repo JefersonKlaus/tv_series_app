@@ -1,6 +1,8 @@
-from adapters.tvmaze_client import TVMazeClient
+import asyncio
 
-import requests
+import httpx
+
+from adapters.tvmaze_client import TVMazeClient
 
 
 class FakeResponse:
@@ -19,14 +21,14 @@ class FakeHttpClient:
         self.responses = responses
         self.requests = []
 
-    def get(self, url, params=None, timeout=None):
+    async def get(self, url, params=None, timeout=None):
         self.requests.append((url, params, timeout))
         return FakeResponse(self.responses.pop(0))
 
 
 class FailingHttpClient:
-    def get(self, url, params=None, timeout=None):
-        raise requests.RequestException("TVMaze indisponível")
+    async def get(self, url, params=None, timeout=None):
+        raise httpx.HTTPError("TVMaze indisponível")
 
 
 def test_search_series_maps_title_year_and_poster():
@@ -46,7 +48,7 @@ def test_search_series_maps_title_year_and_poster():
         ]
     )
 
-    results = TVMazeClient(http_client).search_series("Breaking Bad")
+    results = asyncio.run(TVMazeClient(http_client).search_series("Breaking Bad"))
 
     assert results[0].name == "Breaking Bad"
     assert results[0].premiered_year == 2008
@@ -70,22 +72,29 @@ def test_get_series_details_maps_episodes():
         ]
     )
 
-    series = TVMazeClient(http_client).get_series_details(1)
+    series = asyncio.run(TVMazeClient(http_client).get_series_details(1))
 
     assert series is not None
     assert [episode.name for episode in series.episodes] == [
         "Pilot",
         "Cat's in the Bag...",
     ]
+    assert http_client.requests[1][0].startswith("https://api.tvmaze.com")
     assert http_client.requests[1][0].endswith("/shows/1/episodes")
 
 
 def test_search_series_returns_empty_for_blank_query():
     http_client = FakeHttpClient([])
 
-    assert TVMazeClient(http_client).search_series("   ") == []
+    results = asyncio.run(TVMazeClient(http_client).search_series("   "))
+
+    assert results == []
     assert http_client.requests == []
 
 
 def test_search_series_returns_empty_when_request_fails():
-    assert TVMazeClient(FailingHttpClient()).search_series("Breaking Bad") == []
+    results = asyncio.run(
+        TVMazeClient(FailingHttpClient()).search_series("Breaking Bad")
+    )
+
+    assert results == []

@@ -1,4 +1,5 @@
 import logging
+import asyncio
 
 from core.entities import Series
 from core.interfaces import IAProvider, PersistenceRepository, TVMazeClient
@@ -17,14 +18,16 @@ class SearchSeriesUseCase:
         self.series_provider = series_provider
         self.persistence = persistence
 
-    def execute(self, query: str) -> list[Series]:
+    async def execute(self, query: str) -> list[Series]:
         normalized_query = query.strip()
         if not normalized_query:
             return []
 
-        series_list = self.series_provider.search_series(normalized_query)
+        series_list = await self.series_provider.search_series(normalized_query)
         if self.persistence:
-            return self.persistence.list_with_state(series_list)
+            return await asyncio.to_thread(
+                self.persistence.list_with_state, series_list
+            )
         return series_list
 
 
@@ -39,10 +42,10 @@ class GetSeriesDetailsUseCase:
         self.series_provider = series_provider
         self.persistence = persistence
 
-    def execute(self, series_id: int) -> Series | None:
-        series = self.series_provider.get_series_details(series_id)
+    async def execute(self, series_id: int) -> Series | None:
+        series = await self.series_provider.get_series_details(series_id)
         if series and self.persistence:
-            return self.persistence.sync_series(series)
+            return await asyncio.to_thread(self.persistence.sync_series, series)
         return series
 
 
@@ -50,32 +53,43 @@ class MarkEpisodeWatchedUseCase:
     def __init__(self, persistence: PersistenceRepository):
         self.persistence = persistence
 
-    def execute(self, series_id: int, episode_id: int, watched: bool) -> None:
-        self.persistence.mark_episode_as_watched(series_id, episode_id, watched)
+    async def execute(self, series_id: int, episode_id: int, watched: bool) -> None:
+        await asyncio.to_thread(
+            self.persistence.mark_episode_as_watched,
+            series_id,
+            episode_id,
+            watched,
+        )
 
 
 class MarkSeriesWatchedUseCase:
     def __init__(self, persistence: PersistenceRepository):
         self.persistence = persistence
 
-    def execute(self, series_id: int, watched: bool) -> None:
-        self.persistence.mark_series_as_watched(series_id, watched)
+    async def execute(self, series_id: int, watched: bool) -> None:
+        await asyncio.to_thread(
+            self.persistence.mark_series_as_watched, series_id, watched
+        )
 
 
 class SaveSeriesCommentUseCase:
     def __init__(self, persistence: PersistenceRepository):
         self.persistence = persistence
 
-    def execute(self, series_id: int, comment: str) -> None:
-        self.persistence.save_series_comment(series_id, comment)
+    async def execute(self, series_id: int, comment: str) -> None:
+        await asyncio.to_thread(
+            self.persistence.save_series_comment, series_id, comment
+        )
 
 
 class SaveEpisodeCommentUseCase:
     def __init__(self, persistence: PersistenceRepository):
         self.persistence = persistence
 
-    def execute(self, episode_id: int, comment: str) -> None:
-        self.persistence.save_episode_comment(episode_id, comment)
+    async def execute(self, episode_id: int, comment: str) -> None:
+        await asyncio.to_thread(
+            self.persistence.save_episode_comment, episode_id, comment
+        )
 
 
 class GenerateInsightUseCase:

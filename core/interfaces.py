@@ -14,11 +14,11 @@ class IAProvider(ABC):
 
 class TVMazeClient(ABC):
     @abstractmethod
-    def search_series(self, query: str) -> List[Series]:
+    async def search_series(self, query: str) -> List[Series]:
         pass
 
     @abstractmethod
-    def get_series_details(self, series_id: int) -> Series:
+    async def get_series_details(self, series_id: int) -> Series | None:
         pass
 
 
